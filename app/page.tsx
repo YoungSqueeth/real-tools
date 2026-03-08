@@ -95,6 +95,10 @@ const styles = {
     fontWeight: 500,
     fontSize: "16px",
   },
+  time: {
+    fontSize: "14px",
+    color: "#9ca3af",
+  },
   container: {
     maxWidth: "1100px",
     margin: "0 auto",
