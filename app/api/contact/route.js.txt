@@ -1,0 +1,28 @@
+import { Resend } from "resend"
+
+const resend = new Resend(process.env.RESEND_API_KEY)
+
+export async function POST(req) {
+  try {
+    const { name, email, message } = await req.json()
+
+    await resend.emails.send({
+      from: "Support <onboarding@resend.dev>", 
+      to: "ethankain05@gmail.com", // 🔥 CHANGE THIS TO YOUR EMAIL
+      subject: "New Support Request - Real Tools",
+      html: `
+        <h2>New Support Message</h2>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Message:</strong></p>
+        <p>${message}</p>
+      `
+    })
+
+    return Response.json({ success: true })
+
+  } catch (error) {
+    console.error(error)
+    return Response.json({ error: "Failed to send email" }, { status: 500 })
+  }
+}
