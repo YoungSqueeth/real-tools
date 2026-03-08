@@ -91,6 +91,10 @@ const styles = {
     fontFamily: "Inter, sans-serif",
     paddingBottom: "60px"
   },
+  matchup: {
+    fontWeight: 500,
+    fontSize: "16px",
+  },
   container: {
     maxWidth: "1100px",
     margin: "0 auto",
