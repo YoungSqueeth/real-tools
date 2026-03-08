@@ -61,6 +61,9 @@ const styles = {
     top: 0,
     zIndex: 1000,
   },
+  rightSpacer: {
+    width: "120px"
+  },
   navWrapper: {
     display: "flex",
     alignItems: "center",
