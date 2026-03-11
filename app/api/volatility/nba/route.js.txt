@@ -9,7 +9,7 @@ export async function GET() {
     const today = new Date().toISOString().split("T")[0]
 
     // -------------------------
-    // GET TODAY GAMES
+    // GET TODAY'S GAMES
     // -------------------------
 
     const gamesRes = await fetch(
@@ -31,34 +31,30 @@ export async function GET() {
     })
 
     // -------------------------
-    // GET ALL PLAYERS
+    // GET PLAYER STATISTICS
     // -------------------------
 
-    const playersRes = await fetch(
-      `https://v2.nba.api-sports.io/players?season=2025`,
+    const statsRes = await fetch(
+      `https://v2.nba.api-sports.io/players/statistics?season=2025`,
       { headers }
     )
 
-    const playersData = await playersRes.json()
+    const statsData = await statsRes.json()
 
-    if (!playersData.response) {
+    if (!statsData.response) {
       return Response.json([])
     }
 
     const players = []
 
-    playersData.response.forEach(player => {
+    statsData.response.forEach(stat => {
 
-      if (!teamsPlaying.has(player.team?.id)) return
+      if (!teamsPlaying.has(stat.team.id)) return
 
-      const stats = player.statistics?.[0]
-
-      if (!stats) return
-
-      const pts = stats.points || 0
-      const reb = stats.totReb || 0
-      const ast = stats.assists || 0
-      const min = stats.min || 0
+      const pts = stat.points || 0
+      const reb = stat.totReb || 0
+      const ast = stat.assists || 0
+      const min = stat.min || 0
 
       if (min < 15) return
 
@@ -74,9 +70,9 @@ export async function GET() {
       players.push({
 
         playerName:
-          player.firstname + " " + player.lastname,
+          stat.player.firstname + " " + stat.player.lastname,
 
-        team: player.team.code,
+        team: stat.team.code,
 
         avgFP: Number(production.toFixed(1)),
 
