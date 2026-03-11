@@ -8,9 +8,9 @@ export async function GET() {
 
     const today = new Date().toISOString().split("T")[0]
 
-    // -------------------------
+    // ----------------------
     // GET TODAY'S GAMES
-    // -------------------------
+    // ----------------------
 
     const gamesRes = await fetch(
       `https://v2.nba.api-sports.io/games?date=${today}`,
@@ -19,74 +19,64 @@ export async function GET() {
 
     const gamesData = await gamesRes.json()
 
-    if (!gamesData.response) {
-      return Response.json([])
-    }
+    if (!gamesData.response) return Response.json([])
 
-    const teamsPlaying = new Set()
+    let players = []
 
-    gamesData.response.forEach(game => {
-      teamsPlaying.add(game.teams.home.id)
-      teamsPlaying.add(game.teams.visitors.id)
-    })
+    // ----------------------
+    // GET PLAYER STATS FOR EACH GAME
+    // ----------------------
 
-    // -------------------------
-    // GET PLAYER STATISTICS
-    // -------------------------
+    for (const game of gamesData.response) {
 
-    const statsRes = await fetch(
-      `https://v2.nba.api-sports.io/players/statistics?season=2025`,
-      { headers }
-    )
+      const gameId = game.id
 
-    const statsData = await statsRes.json()
+      const statsRes = await fetch(
+        `https://v2.nba.api-sports.io/games/statistics/players?id=${gameId}`,
+        { headers }
+      )
 
-    if (!statsData.response) {
-      return Response.json([])
-    }
+      const statsData = await statsRes.json()
 
-    const players = []
+      if (!statsData.response) continue
 
-    statsData.response.forEach(stat => {
+      statsData.response.forEach(p => {
 
-      if (!teamsPlaying.has(stat.team.id)) return
+        const pts = p.points || 0
+        const reb = p.totReb || 0
+        const ast = p.assists || 0
+        const min = p.minutes ? parseInt(p.minutes) : 0
 
-      const pts = stat.points || 0
-      const reb = stat.totReb || 0
-      const ast = stat.assists || 0
-      const min = stat.min || 0
+        if (min < 10) return
 
-      if (min < 15) return
+        const production = pts + reb + ast
 
-      const production = pts + reb + ast
+        const volatility =
+          production === 0
+            ? 0
+            : Math.min(10, Math.round((pts * 2 + ast + reb) / production))
 
-      if (production < 8) return
+        players.push({
 
-      const volatility =
-        production === 0
-          ? 0
-          : Math.min(10, Math.round((pts * 2 + ast + reb) / production))
+          playerName: p.player.name,
 
-      players.push({
+          team: p.team.code,
 
-        playerName:
-          stat.player.firstname + " " + stat.player.lastname,
+          avgFP: Number(production.toFixed(1)),
 
-        team: stat.team.code,
+          maxFP: Number((pts * 1.8).toFixed(1)),
 
-        avgFP: Number(production.toFixed(1)),
+          spikeRate: Math.round((pts / production) * 100),
 
-        maxFP: Number((pts * 1.8).toFixed(1)),
+          volatilityScore: volatility,
 
-        spikeRate: Math.round((pts / production) * 100),
+          floorScore: Number((production * 0.75).toFixed(1))
 
-        volatilityScore: volatility,
-
-        floorScore: Number((production * 0.75).toFixed(1))
+        })
 
       })
 
-    })
+    }
 
     players.sort((a,b)=>b.volatilityScore-a.volatilityScore)
 
