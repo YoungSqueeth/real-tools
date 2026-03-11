@@ -8,9 +8,7 @@ export async function GET() {
 
     const today = new Date().toISOString().split("T")[0]
 
-    // -------------------------
     // GET TODAY GAMES
-    // -------------------------
 
     const gamesRes = await fetch(
       `https://v2.nba.api-sports.io/games?date=${today}`,
@@ -19,10 +17,6 @@ export async function GET() {
 
     const gamesData = await gamesRes.json()
 
-    if (!gamesData.response) {
-      return Response.json([])
-    }
-
     const teamsPlaying = new Set()
 
     gamesData.response.forEach(game => {
@@ -30,11 +24,7 @@ export async function GET() {
       teamsPlaying.add(game.teams.visitors.id)
     })
 
-    let players = []
-
-    // -------------------------
-    // GET PLAYERS FOR EACH TEAM
-    // -------------------------
+    let samplePlayers = []
 
     for (const teamId of teamsPlaying) {
 
@@ -47,60 +37,20 @@ export async function GET() {
 
       if (!rosterData.response) continue
 
-      rosterData.response.forEach(player => {
-
-        const stats = player.statistics?.[0]
-
-        if (!stats) return
-
-        const pts = stats.points || 0
-        const reb = stats.totReb || 0
-        const ast = stats.assists || 0
-        const min = stats.min || 0
-
-        if (min < 15) return
-
-        const production = pts + reb + ast
-
-        if (production < 8) return
-
-        const volatility =
-          production === 0
-            ? 0
-            : Math.min(10, Math.round((pts * 2 + ast + reb) / production))
-
-        players.push({
-
-          playerName:
-            player.firstname + " " + player.lastname,
-
-          team: player.team.code,
-
-          avgFP: Number(production.toFixed(1)),
-
-          maxFP: Number((pts * 1.8).toFixed(1)),
-
-          spikeRate: Math.round((pts / production) * 100),
-
-          volatilityScore: volatility,
-
-          floorScore: Number((production * 0.75).toFixed(1))
-
-        })
-
-      })
+      samplePlayers = samplePlayers.concat(rosterData.response.slice(0,3))
 
     }
 
-    players.sort((a,b)=>b.volatilityScore-a.volatilityScore)
-
-    return Response.json(players)
+    return Response.json({
+      teams: [...teamsPlaying],
+      samplePlayers
+    })
 
   } catch (error) {
 
-    console.error("VOL ERROR:", error)
-
-    return Response.json([])
+    return Response.json({
+      error: error.message
+    })
 
   }
 
