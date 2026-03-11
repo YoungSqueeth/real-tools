@@ -8,12 +8,10 @@ export async function GET() {
 
     const today = new Date().toISOString().split("T")[0]
 
-    // ----------------------
-    // GET TODAY'S GAMES
-    // ----------------------
+    // GET TODAY GAMES
 
     const gamesRes = await fetch(
-      `https://v2.nba.api-sports.io/games?date=${today}`,
+      `https://v1.basketball.api-sports.io/games?date=${today}`,
       { headers }
     )
 
@@ -23,16 +21,12 @@ export async function GET() {
 
     let players = []
 
-    // ----------------------
-    // GET PLAYER STATS FOR EACH GAME
-    // ----------------------
-
     for (const game of gamesData.response) {
 
       const gameId = game.id
 
       const statsRes = await fetch(
-        `https://v2.nba.api-sports.io/games/statistics/players?id=${gameId}`,
+        `https://v1.basketball.api-sports.io/games/statistics/players?game=${gameId}`,
         { headers }
       )
 
@@ -43,9 +37,9 @@ export async function GET() {
       statsData.response.forEach(p => {
 
         const pts = p.points || 0
-        const reb = p.totReb || 0
+        const reb = p.rebounds?.total || 0
         const ast = p.assists || 0
-        const min = p.minutes ? parseInt(p.minutes) : 0
+        const min = p.minutes || 0
 
         if (min < 10) return
 
