@@ -1,96 +1,96 @@
+import fs from "fs"
+import path from "path"
+
 export async function GET() {
+
   try {
 
-    const headers = {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      "Referer": "https://www.nba.com/",
-      "Origin": "https://www.nba.com",
-      "Accept": "application/json, text/plain, */*"
+    const cachePath = path.join(process.cwd(), "data", "nba-volatility.json")
+    const today = new Date().toISOString().split("T")[0]
+
+    // -------------------------
+    // RETURN CACHE IF SAME DAY
+    // -------------------------
+
+    if (fs.existsSync(cachePath)) {
+
+      const cache = JSON.parse(fs.readFileSync(cachePath, "utf8"))
+
+      if (cache.date === today) {
+        return Response.json(cache.players)
+      }
+
     }
 
-    const today = new Date()
-    const mm = String(today.getMonth() + 1).padStart(2, "0")
-    const dd = String(today.getDate()).padStart(2, "0")
-    const yyyy = today.getFullYear()
-    const formattedDate = `${mm}/${dd}/${yyyy}`
+    const headers = {
+      "x-apisports-key": process.env.API_SPORTS_KEY
+    }
 
-    // ---------------------------
+    // -------------------------
     // GET TODAY'S GAMES
-    // ---------------------------
+    // -------------------------
 
-    const scoreboardRes = await fetch(
-      `https://stats.nba.com/stats/scoreboardv2?GameDate=${formattedDate}&LeagueID=00&DayOffset=0`,
+    const gamesRes = await fetch(
+      `https://v2.nba.api-sports.io/games?date=${today}`,
       { headers }
     )
 
-    if (!scoreboardRes.ok) {
-      console.error("Scoreboard fetch failed")
+    if (!gamesRes.ok) {
+      console.error("Game fetch failed")
       return Response.json([])
     }
 
-    const scoreboardData = await scoreboardRes.json()
+    const gamesData = await gamesRes.json()
 
-    const gameHeader = scoreboardData?.resultSets?.find(
-      set => set.name === "GameHeader"
-    )
-
-    if (!gameHeader || gameHeader.rowSet.length === 0) {
+    if (!gamesData.response || gamesData.response.length === 0) {
       return Response.json([])
     }
 
     const teamsPlaying = new Set()
 
-    gameHeader.rowSet.forEach(game => {
-      teamsPlaying.add(game[6])
-      teamsPlaying.add(game[7])
+    gamesData.response.forEach(game => {
+      teamsPlaying.add(game.teams.home.id)
+      teamsPlaying.add(game.teams.visitors.id)
     })
 
-    // ---------------------------
-    // GET PLAYER GAME LOGS
-    // ---------------------------
+    // -------------------------
+    // GET PLAYER GAME STATS
+    // -------------------------
 
-    const response = await fetch(
-      "https://stats.nba.com/stats/leaguegamelog?Season=2025-26&SeasonType=Regular+Season&PlayerOrTeam=P",
-      { headers }
-    )
+    let allStats = []
 
-    if (!response.ok) {
-      console.error("Game log fetch failed")
-      return Response.json([])
+    for (const teamId of teamsPlaying) {
+
+      const statsRes = await fetch(
+        `https://v2.nba.api-sports.io/players/statistics?team=${teamId}&season=2025`,
+        { headers }
+      )
+
+      if (!statsRes.ok) continue
+
+      const statsData = await statsRes.json()
+
+      if (statsData.response) {
+        allStats = allStats.concat(statsData.response)
+      }
+
     }
-
-    const data = await response.json()
-
-    const headersRow = data?.resultSets?.[0]?.headers
-    const rows = data?.resultSets?.[0]?.rowSet
-
-    if (!headersRow || !rows) {
-      return Response.json([])
-    }
-
-    const games = rows.map(row => {
-      const obj = {}
-      headersRow.forEach((header, index) => {
-        obj[header] = row[index]
-      })
-      return obj
-    })
 
     const playerMap = {}
 
-    games.forEach(game => {
+    allStats.forEach(game => {
 
-      if (!teamsPlaying.has(game.TEAM_ID)) return
-
-      const id = game.PLAYER_ID
+      const id = game.player.id
 
       if (!playerMap[id]) {
+
         playerMap[id] = {
-          playerName: game.PLAYER_NAME,
-          team: game.TEAM_ABBREVIATION,
+          playerName:
+            game.player.firstname + " " + game.player.lastname,
+          team: game.team.code,
           games: []
         }
+
       }
 
       playerMap[id].games.push(game)
@@ -102,7 +102,7 @@ export async function GET() {
     Object.values(playerMap).forEach(player => {
 
       const sorted = player.games.sort(
-        (a, b) => new Date(b.GAME_DATE) - new Date(a.GAME_DATE)
+        (a, b) => new Date(b.game.date) - new Date(a.game.date)
       )
 
       const last10 = sorted.slice(0, 10)
@@ -110,17 +110,18 @@ export async function GET() {
       if (last10.length < 5) return
 
       const fpArray = last10.map(g =>
-        g.PTS +
-        1.25 * g.REB +
-        1.5 * g.AST +
-        2 * g.STL +
-        2 * g.BLK +
-        0.5 * g.FG3M -
-        g.TOV
+        g.points +
+        1.25 * g.totReb +
+        1.5 * g.assists +
+        2 * g.steals +
+        2 * g.blocks +
+        0.5 * g.tpm -
+        g.turnovers
       )
 
       const minutesAvg =
-        last10.reduce((sum, g) => sum + g.MIN, 0) / last10.length
+        last10.reduce((sum, g) => sum + Number(g.min || 0), 0) /
+        last10.length
 
       if (minutesAvg < 20) return
 
@@ -175,8 +176,20 @@ export async function GET() {
 
     })
 
-    players.sort(
-      (a, b) => b.volatilityScore - a.volatilityScore
+    players.sort((a, b) => b.volatilityScore - a.volatilityScore)
+
+    // -------------------------
+    // SAVE CACHE
+    // -------------------------
+
+    fs.mkdirSync(path.join(process.cwd(), "data"), { recursive: true })
+
+    fs.writeFileSync(
+      cachePath,
+      JSON.stringify({
+        date: today,
+        players
+      })
     )
 
     return Response.json(players)
@@ -188,4 +201,5 @@ export async function GET() {
     return Response.json([])
 
   }
+
 }

@@ -62,6 +62,18 @@ export default function StatsPage() {
     if (score >= 5) return "text-yellow-400"
     if (score >= 3) return "text-green-400"
     return "text-blue-400"
+
+  const getIndicator = (p) => {
+
+  if (p.volatilityScore >= 8) return "🔥"
+
+  if (p.spikeRate >= 30) return "⚡"
+
+  if (p.volatilityScore <= 3) return "🧊"
+
+  return ""
+
+   }
   }
 
   if (loading) {
@@ -152,6 +164,8 @@ export default function StatsPage() {
             <div
               key={index}
               className="grid grid-cols-6 px-6 py-4 border-t border-gray-800 hover:bg-[#141414] transition-all duration-150"
+	      className="border border-gray-800 rounded-2xl overflow-hidden shadow-2xl"
+	      
             >
               <span>{player.playerName}</span>
               <span className="text-gray-400">{player.team}</span>
