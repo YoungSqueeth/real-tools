@@ -8,7 +8,9 @@ export async function GET() {
 
     const today = new Date().toISOString().split("T")[0]
 
+    // -------------------------
     // GET TODAY GAMES
+    // -------------------------
 
     const gamesRes = await fetch(
       `https://v2.nba.api-sports.io/games?date=${today}`,
@@ -17,6 +19,10 @@ export async function GET() {
 
     const gamesData = await gamesRes.json()
 
+    if (!gamesData.response) {
+      return Response.json([])
+    }
+
     const teamsPlaying = new Set()
 
     gamesData.response.forEach(game => {
@@ -24,33 +30,77 @@ export async function GET() {
       teamsPlaying.add(game.teams.visitors.id)
     })
 
-    let samplePlayers = []
+    // -------------------------
+    // GET ALL PLAYERS
+    // -------------------------
 
-    for (const teamId of teamsPlaying) {
+    const playersRes = await fetch(
+      `https://v2.nba.api-sports.io/players?season=2025`,
+      { headers }
+    )
 
-      const rosterRes = await fetch(
-        `https://v2.nba.api-sports.io/players?team=${teamId}&season=2025`,
-        { headers }
-      )
+    const playersData = await playersRes.json()
 
-      const rosterData = await rosterRes.json()
-
-      if (!rosterData.response) continue
-
-      samplePlayers = samplePlayers.concat(rosterData.response.slice(0,3))
-
+    if (!playersData.response) {
+      return Response.json([])
     }
 
-    return Response.json({
-      teams: [...teamsPlaying],
-      samplePlayers
+    const players = []
+
+    playersData.response.forEach(player => {
+
+      if (!teamsPlaying.has(player.team?.id)) return
+
+      const stats = player.statistics?.[0]
+
+      if (!stats) return
+
+      const pts = stats.points || 0
+      const reb = stats.totReb || 0
+      const ast = stats.assists || 0
+      const min = stats.min || 0
+
+      if (min < 15) return
+
+      const production = pts + reb + ast
+
+      if (production < 8) return
+
+      const volatility =
+        production === 0
+          ? 0
+          : Math.min(10, Math.round((pts * 2 + ast + reb) / production))
+
+      players.push({
+
+        playerName:
+          player.firstname + " " + player.lastname,
+
+        team: player.team.code,
+
+        avgFP: Number(production.toFixed(1)),
+
+        maxFP: Number((pts * 1.8).toFixed(1)),
+
+        spikeRate: Math.round((pts / production) * 100),
+
+        volatilityScore: volatility,
+
+        floorScore: Number((production * 0.75).toFixed(1))
+
+      })
+
     })
+
+    players.sort((a,b)=>b.volatilityScore-a.volatilityScore)
+
+    return Response.json(players)
 
   } catch (error) {
 
-    return Response.json({
-      error: error.message
-    })
+    console.error("VOL ERROR:", error)
+
+    return Response.json([])
 
   }
 
