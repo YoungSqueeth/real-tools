@@ -1,46 +1,42 @@
-import fs from "fs"
-import path from "path"
-
 export async function GET() {
 
   try {
-
-    const today = new Date().toISOString().split("T")[0]
-    const cachePath = path.join(process.cwd(),"data","nba-volatility.json")
-
-    if (fs.existsSync(cachePath)) {
-
-      const cache = JSON.parse(fs.readFileSync(cachePath,"utf8"))
-
-      if (cache.date === today) {
-        return Response.json(cache.players)
-      }
-
-    }
 
     const headers = {
       "x-apisports-key": process.env.API_SPORTS_KEY
     }
 
+    const today = new Date().toISOString().split("T")[0]
+
+    // -------------------------
     // GET TODAY GAMES
+    // -------------------------
 
     const gamesRes = await fetch(
       `https://v2.nba.api-sports.io/games?date=${today}`,
       { headers }
     )
 
-    const games = await gamesRes.json()
+    const gamesData = await gamesRes.json()
 
-    const teams = new Set()
+    if (!gamesData.response) {
+      return Response.json([])
+    }
 
-    games.response.forEach(g=>{
-      teams.add(g.teams.home.id)
-      teams.add(g.teams.visitors.id)
+    const teamsPlaying = new Set()
+
+    gamesData.response.forEach(game => {
+      teamsPlaying.add(game.teams.home.id)
+      teamsPlaying.add(game.teams.visitors.id)
     })
+
+    // -------------------------
+    // GET PLAYERS FROM TEAMS
+    // -------------------------
 
     let players = []
 
-    for (const team of teams){
+    for (const team of teamsPlaying) {
 
       const rosterRes = await fetch(
         `https://v2.nba.api-sports.io/players?team=${team}&season=2025`,
@@ -51,25 +47,42 @@ export async function GET() {
 
       if (!roster.response) continue
 
-      roster.response.forEach(p=>{
+      roster.response.forEach(p => {
 
-        const avg = p.statistics?.[0]?.points || 0
-        const max = p.statistics?.[0]?.points || 0
+        const stats = p.statistics?.[0]
 
-        if (avg < 5) return
+        if (!stats) return
 
-        const volatility = max === 0 ? 0 : (max - avg) / avg
+        const pts = stats.points || 0
+        const reb = stats.totReb || 0
+        const ast = stats.assists || 0
+        const min = stats.min || 0
 
-        const score = Math.min(10, Math.round(volatility * 10))
+        const production = pts + reb + ast
+
+        if (production < 8) return
+
+        const volatility =
+          production === 0 ? 0 :
+          Math.min(10, Math.round((pts * 2 + ast + reb) / production))
+
+        const spikeRate = Math.round((pts / production) * 100)
 
         players.push({
+
           playerName: p.firstname + " " + p.lastname,
           team: p.team.code,
-          avgFP: avg,
-          maxFP: max,
-          spikeRate: Math.round(volatility * 100),
-          volatilityScore: score,
-          floorScore: avg
+
+          avgFP: Number(production.toFixed(1)),
+
+          maxFP: Number((pts * 1.8).toFixed(1)),
+
+          spikeRate: spikeRate,
+
+          volatilityScore: volatility,
+
+          floorScore: Number((production * 0.75).toFixed(1))
+
         })
 
       })
@@ -78,18 +91,11 @@ export async function GET() {
 
     players.sort((a,b)=>b.volatilityScore-a.volatilityScore)
 
-    fs.mkdirSync(path.join(process.cwd(),"data"),{recursive:true})
-
-    fs.writeFileSync(
-      cachePath,
-      JSON.stringify({date:today,players})
-    )
-
     return Response.json(players)
 
-  } catch(err){
+  } catch (error) {
 
-    console.error(err)
+    console.error("VOL ERROR:", error)
 
     return Response.json([])
 
