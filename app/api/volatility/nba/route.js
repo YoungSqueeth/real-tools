@@ -8,9 +8,9 @@ export async function GET() {
 
     const today = new Date().toISOString().split("T")[0]
 
-    // --------------------
+    // -------------------------
     // GET TODAY GAMES
-    // --------------------
+    // -------------------------
 
     const gamesRes = await fetch(
       `https://v2.nba.api-sports.io/games?date=${today}`,
@@ -30,65 +30,67 @@ export async function GET() {
       teamsPlaying.add(game.teams.visitors.id)
     })
 
-    // --------------------
-    // GET PLAYER STATS
-    // --------------------
+    let players = []
 
-    const statsRes = await fetch(
-      `https://v2.nba.api-sports.io/players/statistics?season=2025`,
-      { headers }
-    )
+    // -------------------------
+    // GET PLAYERS FOR EACH TEAM
+    // -------------------------
 
-    const statsData = await statsRes.json()
+    for (const teamId of teamsPlaying) {
 
-    if (!statsData.response) {
-      return Response.json([])
-    }
+      const rosterRes = await fetch(
+        `https://v2.nba.api-sports.io/players?team=${teamId}&season=2025`,
+        { headers }
+      )
 
-    const players = []
+      const rosterData = await rosterRes.json()
 
-    statsData.response.forEach(stat => {
+      if (!rosterData.response) continue
 
-      if (!teamsPlaying.has(stat.team.id)) return
+      rosterData.response.forEach(player => {
 
-      const pts = stat.points || 0
-      const reb = stat.totReb || 0
-      const ast = stat.assists || 0
-      const min = stat.min || 0
+        const stats = player.statistics?.[0]
 
-      if (min < 15) return
+        if (!stats) return
 
-      const production = pts + reb + ast
+        const pts = stats.points || 0
+        const reb = stats.totReb || 0
+        const ast = stats.assists || 0
+        const min = stats.min || 0
 
-      if (production < 10) return
+        if (min < 15) return
 
-      const volatility =
-        production === 0
-          ? 0
-          : Math.min(10, Math.round((pts * 2 + ast + reb) / production))
+        const production = pts + reb + ast
 
-      const spikeRate = Math.round((pts / production) * 100)
+        if (production < 8) return
 
-      players.push({
+        const volatility =
+          production === 0
+            ? 0
+            : Math.min(10, Math.round((pts * 2 + ast + reb) / production))
 
-        playerName:
-          stat.player.firstname + " " + stat.player.lastname,
+        players.push({
 
-        team: stat.team.code,
+          playerName:
+            player.firstname + " " + player.lastname,
 
-        avgFP: Number(production.toFixed(1)),
+          team: player.team.code,
 
-        maxFP: Number((pts * 1.8).toFixed(1)),
+          avgFP: Number(production.toFixed(1)),
 
-        spikeRate: spikeRate,
+          maxFP: Number((pts * 1.8).toFixed(1)),
 
-        volatilityScore: volatility,
+          spikeRate: Math.round((pts / production) * 100),
 
-        floorScore: Number((production * 0.75).toFixed(1))
+          volatilityScore: volatility,
+
+          floorScore: Number((production * 0.75).toFixed(1))
+
+        })
 
       })
 
-    })
+    }
 
     players.sort((a,b)=>b.volatilityScore-a.volatilityScore)
 
