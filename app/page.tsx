@@ -25,9 +25,7 @@ export default function Home() {
         {/* Hero */}
         <div style={styles.hero}>
           <h1 style={styles.title}>Real Tools Dashboard</h1>
-          <p style={styles.subtitle}>
-            Created by @Dart
-          </p>
+          <p style={styles.subtitle}>Created by @Dart</p>
         </div>
 
         {/* Feature Cards */}
@@ -42,13 +40,13 @@ export default function Home() {
             <p>Track historical Rax opportunities and performance</p>
           </Link>
 
-	  <Link href="/faq" style={styles.card}>
+          <Link href="/faq" style={styles.card}>
             <h2>FAQ</h2>
             <p>Find answers to the most common questions</p>
           </Link>
-	</div>
+        </div>
 
-        {/* Today's Games Section */}
+        {/* Today's Games */}
         <div style={styles.gamesSection}>
           <h2 style={styles.sectionTitle}>Today’s Games</h2>
 
@@ -57,22 +55,26 @@ export default function Home() {
               <h3 style={styles.leagueTitle}>{league}</h3>
 
               {groupedGames[league]
-                .sort((a: any, b: any) => 
+                .sort((a: any, b: any) =>
                   new Date(a.gameTime).getTime() - new Date(b.gameTime).getTime()
                 )
                 .map((game: any, index: number) => (
-                  <div key={index} style={styles.gameRow}>
-  		    <span style={styles.matchup}>
-    		      {game.awayTeam} vs {game.homeTeam}
-  		  </span>
 
-  		  <span style={styles.time}>
-    		    {new Date(game.gameTime).toLocaleTimeString("en-US", {
-      		      hour: "numeric",
-          		minute: "2-digit",
-    		    })}
-  		  </span>
-		</div>
+                  <div key={index} style={styles.gameRow}>
+
+                    <span style={styles.matchup}>
+                      {game.awayTeam} vs {game.homeTeam}
+                    </span>
+
+                    <span style={styles.time}>
+                      {new Date(game.gameTime).toLocaleTimeString("en-US", {
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </span>
+
+                  </div>
+
                 ))}
             </div>
           ))}
@@ -84,6 +86,7 @@ export default function Home() {
 }
 
 const styles = {
+
   main: {
     minHeight: "100vh",
     background: "black",
@@ -91,66 +94,83 @@ const styles = {
     fontFamily: "Inter, sans-serif",
     paddingBottom: "60px"
   },
-  matchup: {
-    fontWeight: 500,
-    fontSize: "16px",
-  },
-  time: {
-    fontSize: "14px",
-    color: "#9ca3af",
-  },
+
   container: {
     maxWidth: "1100px",
     margin: "0 auto",
-    padding: "40px",
+    padding: "clamp(16px, 5vw, 40px)",
   },
+
   hero: {
     textAlign: "center" as const,
-    marginBottom: "60px",
+    marginBottom: "clamp(40px, 8vw, 60px)",
   },
+
   title: {
-    fontSize: "48px",
+    fontSize: "clamp(30px, 6vw, 48px)",
     fontWeight: 700,
-    marginBottom: "20px",
+    marginBottom: "16px",
   },
+
   subtitle: {
-    fontSize: "24px",
+    fontSize: "clamp(16px, 3vw, 24px)",
     color: "white",
   },
+
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-    gap: "30px",
-    marginBottom: "80px",
+    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+    gap: "20px",
+    marginBottom: "60px",
   },
+
   card: {
     backgroundColor: "#262626",
-    padding: "30px",
+    padding: "clamp(20px, 4vw, 30px)",
     borderRadius: "16px",
     textDecoration: "none",
     color: "#E5E4BA",
     border: "1px solid #334155",
+    transition: "all 0.2s ease",
   },
+
   gamesSection: {
-    marginTop: "40px",
+    marginTop: "20px",
   },
+
   sectionTitle: {
-    fontSize: "28px",
-    marginBottom: "30px",
+    fontSize: "clamp(20px, 4vw, 28px)",
+    marginBottom: "24px",
   },
+
   leagueBlock: {
-    marginBottom: "40px",
+    marginBottom: "32px",
   },
+
   leagueTitle: {
-    fontSize: "20px",
-    marginBottom: "15px",
+    fontSize: "clamp(16px, 3vw, 20px)",
+    marginBottom: "12px",
     color: "#94a3b8",
   },
+
   gameRow: {
     display: "flex",
     justifyContent: "space-between",
-    padding: "10px 0",
+    alignItems: "center",
+    flexWrap: "wrap" as const,
+    gap: "6px",
+    padding: "12px 0",
     borderBottom: "1px solid #334155",
-    color: "#E3E3E3",
   },
+
+  matchup: {
+    fontWeight: 500,
+    fontSize: "clamp(14px, 2.5vw, 16px)",
+  },
+
+  time: {
+    fontSize: "clamp(12px, 2.5vw, 14px)",
+    color: "#9ca3af",
+  },
+
 }
