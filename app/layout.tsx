@@ -26,8 +26,8 @@ export default function RootLayout({
 	    <div style={styles.centerLinks}>
 	      <Link href="/" style={styles.link}>Home</Link>
 	      <Link href="/projection-targets" style={styles.link}>	Predictions</Link>
-	      <Link href="/stats" style={styles.link}>	Lineup</Link>
 	      <Link href="/on-this-day" style={styles.link}>OTD</Link>
+	      <Link href="/faq" style={styles.link}>	FAQ</Link>
 
 	    </div>
 

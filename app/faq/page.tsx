@@ -24,17 +24,16 @@ export default function FAQPage() {
           question: "How are Projection Targets calculated?",
           answer:
             "Projection Targets use de-vigged implied probabilities averaged across sportsbooks with a 5% edge threshold."
-        }
-      ]
-    },
-    {
-      title: "Lineups",
-      items: [
-        {
-          question: "How is value calculated?",
-          answer:
-            "Value equals (Projected Fantasy Points / Daily Fantasy Sports (DFS) Cost) × 1000."
-        }
+	},
+	{
+	  question: "How do I determine unit size?",
+	  answer: 
+	    "Unit size should be 1% of your total bankroll. For example, if you have 30,000 rax then your unit size would be 300 rax."
+        },
+	{
+	  question: "What is EV betting?",
+	  answer: "EV (Expected Value) betting is a strategy focused on identifying wagers where the probability of winning is higher than the odds imply, offering a long-term mathematical edge."
+	}
       ]
     },
     {
@@ -43,7 +42,7 @@ export default function FAQPage() {
         {
           question: "How is OTD Value calculated?",
           answer:
-            "OTD Value equals REAL Rating × Position Boost × Card Level Multiplier."
+            "OTD Value equals REAL Rating × Position Boost × Card Level Multiplier. The full list of boosts can be found on Real's website at: https://docs.realapp.link/collect/player-cards"
         }
       ]
     }

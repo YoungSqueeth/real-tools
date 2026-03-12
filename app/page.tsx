@@ -37,16 +37,16 @@ export default function Home() {
             <p>Identify top value opportunities based on projected output vs pricing</p>
           </Link>
 
-          <Link href="/stats" style={styles.card}>
-            <h2>Lineup</h2>
-            <p>Optimize daily lineups using high spike rate players</p>
-          </Link>
-
           <Link href="/on-this-day" style={styles.card}>
             <h2>On This Day</h2>
             <p>Track historical Rax opportunities and performance</p>
           </Link>
-        </div>
+
+	  <Link href="/faq" style={styles.card}>
+            <h2>FAQ</h2>
+            <p>Find answers to the most common questions</p>
+          </Link>
+	</div>
 
         {/* Today's Games Section */}
         <div style={styles.gamesSection}>

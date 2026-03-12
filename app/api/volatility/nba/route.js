@@ -2,13 +2,21 @@ export async function GET() {
 
   try {
 
+    const headers = {
+      "Authorization": process.env.BALLDONTLIE_API_KEY
+    }
+
     const today = new Date().toISOString().split("T")[0]
 
+    // GET TODAY GAMES
     const gamesRes = await fetch(
-      `https://api.balldontlie.io/v1/games?dates[]=${today}`
+      `https://api.balldontlie.io/nba/v1/games?dates[]=${today}`,
+      { headers }
     )
 
     const gamesData = await gamesRes.json()
+
+    if (!gamesData.data) return Response.json([])
 
     const gameIds = gamesData.data.map(g => g.id)
 
@@ -17,10 +25,13 @@ export async function GET() {
     for (const gameId of gameIds) {
 
       const statsRes = await fetch(
-        `https://api.balldontlie.io/v1/stats?game_ids[]=${gameId}`
+        `https://api.balldontlie.io/nba/v1/stats?game_ids[]=${gameId}`,
+        { headers }
       )
 
       const statsData = await statsRes.json()
+
+      if (!statsData.data) continue
 
       statsData.data.forEach(p => {
 
@@ -39,7 +50,6 @@ export async function GET() {
             : Math.min(10, Math.round((pts * 2 + ast + reb) / production))
 
         players.push({
-
           playerName: p.player.first_name + " " + p.player.last_name,
           team: p.team.abbreviation,
           avgFP: Number(production.toFixed(1)),
@@ -47,7 +57,6 @@ export async function GET() {
           spikeRate: Math.round((pts / production) * 100),
           volatilityScore: volatility,
           floorScore: Number((production * 0.75).toFixed(1))
-
         })
 
       })
