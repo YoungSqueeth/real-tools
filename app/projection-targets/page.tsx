@@ -81,7 +81,7 @@ export default function Home() {
 const [games,setGames]=useState<Game[]>([])
 const [loading,setLoading]=useState(true)
 const [selectedLeague,setSelectedLeague]=useState("ALL")
-const [unitSize,setUnitSize]=useState(100)
+const [unitSize,setUnitSize]=useState(500)
 const [realProbs,setRealProbs]=useState<Record<string,number>>({})
 
 useEffect(()=>{
@@ -117,16 +117,24 @@ function calcBet(real:number|undefined,market:number){
  let mult=0
 
  if(edge<0.06) mult=1
- else if(edge<0.65) mult=1.25
- else if(edge<0.7) mult=1.5
- else if(edge<0.75) mult=1.75
- else if(edge<0.8) mult=2
- else if(edge<0.85) mult=2.25
- else if(edge<0.9) mult=2.5
- else if(edge<0.95) mult=2.75
+ else if(edge<0.065) mult=1.25
+ else if(edge<0.07) mult=1.5
+ else if(edge<0.075) mult=1.75
+ else if(edge<0.08) mult=2
+ else if(edge<0.085) mult=2.25
+ else if(edge<0.09) mult=2.5
+ else if(edge<0.1) mult=2.75
  else mult=3
 
- return (unitSize*mult).toFixed(0)
+ let prob=0
+
+ if (market>0.6) prob=1
+ else if (market>0.45) prob=0.85
+ else if (market>0.4) prob=0.5
+ else if (market>0.3) prob=0.35
+ else prob=0.2
+
+ return (unitSize*mult*prob).toFixed(0)
 }
 
 function edgeColor(edge:number){

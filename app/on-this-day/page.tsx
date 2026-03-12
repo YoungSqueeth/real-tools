@@ -154,67 +154,82 @@ export default function OTDValuePage() {
           <table style={styles.table}>
 
             <thead>
-              <tr style={styles.headerRow}>
-                <th>Rank</th>
-                <th>Player</th>
-                <th>Rating</th>
-                <th style={styles.commonHeader}>Common</th>
-                <th style={styles.uncommonHeader}>Uncommon</th>
-                <th style={styles.rareHeader}>Rare</th>
-                <th style={styles.epicHeader}>Epic</th>
-                <th style={styles.legendaryHeader}>Legendary</th>
-                <th style={styles.mysticHeader}>Mystic</th>
-                <th style={styles.iconicHeader}>Iconic</th>
-              </tr>
-            </thead>
+  <tr style={styles.headerRow}>
+    <th style={styles.headerCell}>Rank</th>
+    <th style={styles.headerCellLeft}>Player</th>
+    <th style={styles.headerCell}>Rating</th>
+    <th style={{...styles.headerCell, ...styles.commonHeader}}>Common</th>
+    <th style={{...styles.headerCell, ...styles.uncommonHeader}}>Uncommon</th>
+    <th style={{...styles.headerCell, ...styles.rareHeader}}>Rare</th>
+    <th style={{...styles.headerCell, ...styles.epicHeader}}>Epic</th>
+    <th style={{...styles.headerCell, ...styles.legendaryHeader}}>Legendary</th>
+    <th style={{...styles.headerCell, ...styles.mysticHeader}}>Mystic</th>
+    <th style={{...styles.headerCell, ...styles.iconicHeader}}>Iconic</th>
+  </tr>
+</thead>
 
             <tbody>
+  {filteredPlayers.map((p, i) => (
+    <tr
+      key={i}
+      onClick={() =>
+        setSelectedPlayer(
+          selectedPlayer === p.playerName ? null : p.playerName
+        )
+      }
+      style={{
+        ...styles.row,
+        backgroundColor:
+          selectedPlayer === p.playerName
+            ? "#1f2937"
+            : undefined,
+        borderLeft:
+          selectedPlayer === p.playerName
+            ? "4px solid #38bdf8"
+            : "4px solid transparent"
+      }}
+      className="hover-row"
+    >
+      <td style={styles.cellCenter}>
+        {selectedSport === "ALL"
+          ? `${p.overallRank}`
+          : `${p.sportRank}`}
+      </td>
 
-              {filteredPlayers.map((p, i) => (
+      <td style={styles.cellLeft}>{p.playerName}</td>
 
-                <tr
-                  key={i}
-                  onClick={() =>
-                    setSelectedPlayer(
-                      selectedPlayer === p.playerName ? null : p.playerName
-                    )
-                  }
-                  style={{
-                    ...styles.row,
-                    backgroundColor:
-                      selectedPlayer === p.playerName
-                        ? "#1f2937"
-                        : undefined,
-                    borderLeft:
-                      selectedPlayer === p.playerName
-                        ? "4px solid #38bdf8"
-                        : "4px solid transparent"
-                  }}
-                  className="hover-row"
-                >
+      <td style={styles.cellCenter}>{Math.round(p.realRating)}</td>
 
-                  <td style={styles.rank}>
-                    {selectedSport === "ALL"
-                      ? `${p.overallRank}`
-                      : `${p.sportRank}`}
-                  </td>
+      <td style={{...styles.cellCenter, ...styles.common}}>
+        {Math.round(p.cardScores.common)}
+      </td>
 
-                  <td>{p.playerName}</td>
-                  <td>{Math.round(p.realRating)}</td>
+      <td style={{...styles.cellCenter, ...styles.uncommon}}>
+        {Math.round(p.cardScores.uncommon)}
+      </td>
 
-                  <td style={styles.common}>{Math.round(p.cardScores.common)}</td>
-                  <td style={styles.uncommon}>{Math.round(p.cardScores.uncommon)}</td>
-                  <td style={styles.rare}>{Math.round(p.cardScores.rare)}</td>
-                  <td style={styles.epic}>{Math.round(p.cardScores.epic)}</td>
-                  <td style={styles.legendary}>{Math.round(p.cardScores.legendary)}</td>
-                  <td style={styles.mystic}>{Math.round(p.cardScores.mystic)}</td>
-                  <td style={styles.iconic}>{Math.round(p.cardScores.iconic)}</td>
+      <td style={{...styles.cellCenter, ...styles.rare}}>
+        {Math.round(p.cardScores.rare)}
+      </td>
 
-                </tr>
+      <td style={{...styles.cellCenter, ...styles.epic}}>
+        {Math.round(p.cardScores.epic)}
+      </td>
 
-              ))}
+      <td style={{...styles.cellCenter, ...styles.legendary}}>
+        {Math.round(p.cardScores.legendary)}
+      </td>
 
-            </tbody>
+      <td style={{...styles.cellCenter, ...styles.mystic}}>
+        {Math.round(p.cardScores.mystic)}
+      </td>
+
+      <td style={{...styles.cellCenter, ...styles.iconic}}>
+        {Math.round(p.cardScores.iconic)}
+      </td>
+    </tr>
+  ))}
+</tbody>
 
           </table>
 
@@ -307,6 +322,28 @@ const styles = {
     fontWeight: 800,
     color: "#d4d4d4",
   },
+
+  headerCell: {
+  padding: "14px 20px",
+  textAlign: "center",
+  letterSpacing: "0.03em",
+},
+
+headerCellLeft: {
+  padding: "14px 20px",
+  textAlign: "left",
+  letterSpacing: "0.03em",
+},
+
+cellCenter: {
+  padding: "16px 20px",
+  textAlign: "center",
+},
+
+cellLeft: {
+  padding: "16px 20px",
+  textAlign: "left",
+},
 
   dropdown: {
     padding: "10px 14px",
