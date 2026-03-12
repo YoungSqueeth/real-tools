@@ -20,6 +20,7 @@ type Player = {
 }
 
 export default function OTDValuePage() {
+
   const [players, setPlayers] = useState<Player[]>([])
   const [search, setSearch] = useState("")
   const [selectedSport, setSelectedSport] = useState("ALL")
@@ -31,10 +32,6 @@ export default function OTDValuePage() {
       .then(res => res.json())
       .then(data => setPlayers(data))
   }, [selectedYear])
-
-  // =============================
-  // 🔥 RANKING LOGIC
-  // =============================
 
   const overallRanked = [...players]
     .sort((a, b) => b.cardScores.iconic - a.cardScores.iconic)
@@ -83,8 +80,7 @@ export default function OTDValuePage() {
     return matchesSearch && matchesSport
   })
 
-  const sportOrder = ["ALL", "MLB", "NFL", "CFB", "NBA", "CBB", "WNBA", "NHL", "GOLF"]
-
+  const sportOrder = ["ALL","MLB","NFL","CFB","NBA","CBB","WNBA","NHL","GOLF"]
   const availableSports = Array.from(new Set(players.map(p => p.sport)))
 
   const sports = sportOrder.filter(
@@ -92,7 +88,9 @@ export default function OTDValuePage() {
   )
 
   return (
+
     <main style={styles.main}>
+
       <style jsx>{`
         .hover-row:hover {
           background-color: #111827;
@@ -102,7 +100,10 @@ export default function OTDValuePage() {
       `}</style>
 
       <div style={styles.container}>
+
         <h1 style={styles.title}>On This Day Chart</h1>
+
+        {/* YEAR SELECT */}
 
         <select
           value={selectedYear}
@@ -114,7 +115,10 @@ export default function OTDValuePage() {
           <option value="23-24">23-24</option>
         </select>
 
+        {/* CONTROLS */}
+
         <div style={styles.controls}>
+
           <input
             type="text"
             placeholder="Search player..."
@@ -122,6 +126,8 @@ export default function OTDValuePage() {
             onChange={e => setSearch(e.target.value)}
             style={styles.search}
           />
+
+          {/* SPORT TABS */}
 
           <div style={styles.tabs}>
             {sports.map(sport => (
@@ -138,10 +144,15 @@ export default function OTDValuePage() {
               </button>
             ))}
           </div>
+
         </div>
 
+        {/* TABLE */}
+
         <div style={styles.tableWrapper}>
+
           <table style={styles.table}>
+
             <thead>
               <tr style={styles.headerRow}>
                 <th>Rank</th>
@@ -158,7 +169,9 @@ export default function OTDValuePage() {
             </thead>
 
             <tbody>
+
               {filteredPlayers.map((p, i) => (
+
                 <tr
                   key={i}
                   onClick={() =>
@@ -175,11 +188,11 @@ export default function OTDValuePage() {
                     borderLeft:
                       selectedPlayer === p.playerName
                         ? "4px solid #38bdf8"
-                        : "4px solid transparent",
-                    transition: "all 0.15s ease-in-out"
+                        : "4px solid transparent"
                   }}
                   className="hover-row"
                 >
+
                   <td style={styles.rank}>
                     {selectedSport === "ALL"
                       ? `${p.overallRank}`
@@ -189,97 +202,112 @@ export default function OTDValuePage() {
                   <td>{p.playerName}</td>
                   <td>{Math.round(p.realRating)}</td>
 
-                  <td style={styles.common}>
-                    {Math.round(p.cardScores.common)}
-                  </td>
-                  <td style={styles.uncommon}>
-                    {Math.round(p.cardScores.uncommon)}
-                  </td>
-                  <td style={styles.rare}>
-                    {Math.round(p.cardScores.rare)}
-                  </td>
-                  <td style={styles.epic}>
-                    {Math.round(p.cardScores.epic)}
-                  </td>
-                  <td style={styles.legendary}>
-                    {Math.round(p.cardScores.legendary)}
-                  </td>
-                  <td style={styles.mystic}>
-                    {Math.round(p.cardScores.mystic)}
-                  </td>
-                  <td style={styles.iconic}>
-                    {Math.round(p.cardScores.iconic)}
-                  </td>
+                  <td style={styles.common}>{Math.round(p.cardScores.common)}</td>
+                  <td style={styles.uncommon}>{Math.round(p.cardScores.uncommon)}</td>
+                  <td style={styles.rare}>{Math.round(p.cardScores.rare)}</td>
+                  <td style={styles.epic}>{Math.round(p.cardScores.epic)}</td>
+                  <td style={styles.legendary}>{Math.round(p.cardScores.legendary)}</td>
+                  <td style={styles.mystic}>{Math.round(p.cardScores.mystic)}</td>
+                  <td style={styles.iconic}>{Math.round(p.cardScores.iconic)}</td>
+
                 </tr>
+
               ))}
+
             </tbody>
+
           </table>
+
         </div>
+
       </div>
+
     </main>
+
   )
+
 }
 
 const styles = {
+
   main: {
     minHeight: "100vh",
     background: "black",
     color: "#E5E4BA",
-    padding: "40px 0",
+    padding: "20px 0",
   },
+
   container: {
     maxWidth: "1300px",
     margin: "0 auto",
-    padding: "0 40px",
+    padding: "0 clamp(16px,4vw,40px)",
   },
+
   title: {
-    fontSize: "32px",
-    marginBottom: "25px",
+    fontSize: "clamp(22px,4vw,32px)",
+    marginBottom: "20px",
   },
+
   controls: {
-    marginBottom: "25px",
+    marginBottom: "20px",
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "12px"
   },
+
   search: {
     padding: "10px 14px",
     borderRadius: "8px",
     border: "1px solid #334155",
     backgroundColor: "#0f172a",
     color: "white",
-    marginBottom: "15px",
-    width: "250px",
+    width: "100%",
+    maxWidth: "300px"
   },
+
   tabs: {
     display: "flex",
     gap: "10px",
+    overflowX: "auto" as const,
+    paddingBottom: "5px"
   },
+
   tab: {
     padding: "8px 14px",
     borderRadius: "8px",
     border: "none",
     color: "white",
     cursor: "pointer",
+    whiteSpace: "nowrap" as const
   },
+
   tableWrapper: {
     border: "1px solid #334155",
-    borderRadius: "1px",
-    overflow: "hidden",
+    borderRadius: "6px",
+    overflowX: "auto" as const
   },
+
   table: {
     width: "100%",
+    minWidth: "750px",
     borderCollapse: "collapse" as const,
   },
+
   headerRow: {
     backgroundColor: "#1e293b",
     fontWeight: 700,
     textAlign: "left" as const,
   },
+
   row: {
     borderTop: "1px solid #334155",
   },
+
   rank: {
     fontWeight: 800,
     color: "#d4d4d4",
   },
+
   dropdown: {
     padding: "10px 14px",
     borderRadius: "8px",
@@ -287,9 +315,9 @@ const styles = {
     backgroundColor: "#0f172a",
     color: "white",
     marginBottom: "15px",
-    width: "150px",
-    display: "block"
+    width: "150px"
   },
+
   commonHeader: { color: "#3b82f6" },
   uncommonHeader: { color: "#22c55e" },
   rareHeader: { color: "#f59e0b" },
@@ -297,6 +325,7 @@ const styles = {
   legendaryHeader: { color: "#a855f7" },
   mysticHeader: { color: "#facc15" },
   iconicHeader: { color: "#f4a8ff" },
+
   common: { color: "#3b82f6" },
   uncommon: { color: "#22c55e", fontWeight: 600 },
   rare: { color: "#f59e0b", fontWeight: 600 },
@@ -304,4 +333,5 @@ const styles = {
   legendary: { color: "#a855f7", fontWeight: 700 },
   mystic: { color: "#facc15", fontWeight: 700 },
   iconic: { color: "#f4a8ff", fontWeight: 800 },
+
 }
