@@ -325,24 +325,24 @@ const styles = {
 
   headerCell: {
   padding: "14px 20px",
-  textAlign: "center",
+  textAlign: "center" as const,
   letterSpacing: "0.03em",
 },
 
 headerCellLeft: {
   padding: "14px 20px",
-  textAlign: "left",
+  textAlign: "left" as const,
   letterSpacing: "0.03em",
 },
 
 cellCenter: {
   padding: "16px 20px",
-  textAlign: "center",
+  textAlign: "center" as const,
 },
 
 cellLeft: {
   padding: "16px 20px",
-  textAlign: "left",
+  textAlign: "left" as const,
 },
 
   dropdown: {
